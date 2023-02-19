@@ -45,7 +45,7 @@ class Vite
      */
     public function getOutDir(): string
     {
-        return $this->out_dir ??= $this->sanitizeDir(option('jan-herman.kirby-vite.build.outDir', 'dist'));
+        return $this->out_dir ??= $this->sanitizeDir(option('jan-herman.vite.build.outDir', 'dist'));
     }
 
     /**
@@ -54,7 +54,7 @@ class Vite
     public function getRootDir(): string
     {
         return $this->root_dir ??= $this->sanitizeDir(
-            option('jan-herman.kirby-vite.build.rootDir', 'src')
+            option('jan-herman.vite.build.rootDir', 'src')
         );
     }
 
@@ -68,9 +68,9 @@ class Vite
         }
 
 		$uri = new Uri([
-			'scheme' => option('jan-herman.kirby-vite.server.https', false) ? 'https' : 'http',
-			'host'   => option('jan-herman.kirby-vite.server.host', kirby()->environment()->host()),
-			'port'   => option('jan-herman.kirby-vite.server.port', 3000)
+			'scheme' => option('jan-herman.vite.server.https', false) ? 'https' : 'http',
+			'host'   => option('jan-herman.vite.server.host', kirby()->environment()->host()),
+			'port'   => option('jan-herman.vite.server.port', 3000)
 		]);
 
 		return $this->dev_server = $uri->toString();
@@ -133,7 +133,7 @@ class Vite
      */
     public function getManifestProperty(?string $entry = null, $key = 'file')
     {
-        $entry ??= option('jan-herman.kirby-vite.entry', 'index.js');
+        $entry ??= option('jan-herman.vite.entry', 'index.js');
         $manifest_entry = $this->getManifest()[$entry] ?? null;
 
         if (!$manifest_entry) {
@@ -242,7 +242,7 @@ class Vite
     public function js(?string $entry = null, array $options = []): ?string
     {
         if ($this->isDev()) {
-            $entry = $entry ?? option('jan-herman.kirby-vite.entry', 'index.js');
+            $entry = $entry ?? option('jan-herman.vite.entry', 'index.js');
 
             if (!F::exists($this->devPath($entry))) {
                 return null;

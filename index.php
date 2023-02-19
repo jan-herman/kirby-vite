@@ -7,7 +7,7 @@ use JanHerman\Vite\Vite;
 
 $kirby = kirby();
 
-Kirby::plugin('jan-herman/kirby-vite', [
+Kirby::plugin('jan-herman/vite', [
     'options' => [
         'entry' => 'index.js',
 		'server' => [
