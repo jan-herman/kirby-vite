@@ -228,9 +228,9 @@ class Vite
 
         $css = '';
         foreach ($files as $file) {
-            $css .= '<style ' . Html::attr($options) . '>' . PHP_EOL;
+            $css .= '<style ' . Html::attr($options) . '>';
             $css .= F::read($this->prodPath($file));
-            $css .= '</style>' . PHP_EOL;
+            $css .= '</style>';
         }
 
         return $css;

@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.3] - 2023-02-21
+### Changed
+- Remove unnecessary PHP_EOL from the inlineCss method output
+
+
 ## [1.0.2] - 2023-02-19
 ### Changed
 - Plugin name changed from `kirby-vite` to `vite`
