@@ -119,7 +119,7 @@ class Vite
             return $this->manifest;
         }
 
-        $manifest_path = kirby()->root() . $this->getOutDir() . '/manifest.json';
+        $manifest_path = kirby()->root() . $this->getOutDir() . '/.vite/manifest.json';
 
         if (!F::exists($manifest_path)) {
             return [];

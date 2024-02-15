@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.0.0] - 2024-02-15
+### Added
+- Support for Vite 5
+    - Breaking change: manifest.json was moved to .vite/ directory
+
+
 ## [1.0.3] - 2023-02-21
 ### Changed
 - Remove unnecessary PHP_EOL from the inlineCss method output
