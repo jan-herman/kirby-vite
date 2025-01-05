@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.1.0] - 2025-01-05
+### Added
+- `destroy()` method (useful for static site generation to reset the instance after each page build)
+
+
 ## [2.0.0] - 2024-02-15
 ### Added
 - Support for Vite 5

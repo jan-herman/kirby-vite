@@ -22,6 +22,11 @@ class Vite
         return self::$instance ??= new self();
     }
 
+    public function destroy(): void
+    {
+        self::$instance = null;
+    }
+
     /**
      * Make sure, a directory starts with a slash and doesn't end with a slash.
      */
