@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.2.0] - 2025-06-06
+### Added
+- legacy `router.php` to ensure compatibility with Kirby 4.7.1
+
+
 ## [2.1.0] - 2025-01-05
 ### Added
 - `destroy()` method (useful for static site generation to reset the instance after each page build)

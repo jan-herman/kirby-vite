@@ -1,7 +1,7 @@
 {
     "name": "jan-herman/kirby-vite",
     "description": "Kirby plugin that handles development and production mode of Vite.",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "type": "kirby-plugin",
     "license": "MIT",
     "homepage": "https://github.com/jan-herman/kirby-vite",
