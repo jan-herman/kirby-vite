@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.3.0] - 2025-06-09
+### Added
+- `vite()->file()` method to access assets
+
+
 ## [2.2.0] - 2025-06-06
 ### Added
 - legacy `router.php` to ensure compatibility with Kirby 4.7.1

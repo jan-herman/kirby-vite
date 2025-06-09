@@ -136,9 +136,10 @@ class Vite
     /**
      * Get the value of a manifest property for a specific entry.
      */
-    public function getManifestProperty(?string $entry = null, $key = 'file')
+    public function getManifestProperty(?string $entry = null, string $key = 'file')
     {
         $entry ??= option('jan-herman.vite.entry', 'index.js');
+        $entry = ltrim($entry, '/');
         $manifest_entry = $this->getManifest()[$entry] ?? null;
 
         if (!$manifest_entry) {
@@ -270,20 +271,39 @@ class Vite
     }
 
     /**
-	 * Return a `<link rel="preload">` tag for an entry point.
+	 * Return the url for the specified entry point.
 	 */
-    public function preload(string $entry = null, array $options = []): ?string
+    public function file(string $entry): ?string
     {
         if ($this->isDev()) {
             $file_path = $this->devPath($entry);
             $file_url = $this->devUrl($entry);
         } else {
             $manifest_property = $this->getManifestProperty($entry, 'file');
+
+            if (!$manifest_property) {
+                return null;
+            }
+
             $file_path = $this->prodPath($manifest_property);
             $file_url = $this->prodUrl($manifest_property);
         }
 
         if (!F::exists($file_path)) {
+            return null;
+        }
+
+        return $file_url;
+    }
+
+    /**
+	 * Return a `<link rel="preload">` tag for an entry point.
+	 */
+    public function preload(string $entry, array $options = []): ?string
+    {
+        $file_url = $this->file($entry);
+
+        if (!$file_url) {
             return null;
         }
 
