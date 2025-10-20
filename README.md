@@ -10,7 +10,7 @@ Default: `'index.js'`
 
 ### server.host
 
-Default: `$kirby->environment()->host()`
+Default: `localhost`
 
 ### server.port
 
@@ -20,6 +20,10 @@ Default: `3000`
 
 Default: `false`
 
+### server.base
+
+Default: `/`
+
 ### build.rootDir
 
 Default: `'src'`
@@ -27,3 +31,7 @@ Default: `'src'`
 ### build.outDir
 
 Default: `'dist'`
+
+### build.manifest
+
+Default: `.vite/manifest.json`

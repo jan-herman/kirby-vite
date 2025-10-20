@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.4.0] - 2025-10-14
+### Added
+- support for directly importing stylesheets
+- `virtualJs()` method to create virtual JS modules
+- `server.base` option
+- `build.manifest` option
+
+### Changed
+- `getCssFiles()` method now supports nested imports
+- `getCssFiles()` & `isDev()` methods are now public
+- `server.host` option default value changed from kirby()->environment()->host() to 'localhost' (⚡ potential BC)
+
+
 ## [2.3.0] - 2025-06-09
 ### Added
 - `vite()->file()` method to access assets

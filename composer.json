@@ -1,7 +1,7 @@
 {
     "name": "jan-herman/kirby-vite",
     "description": "Kirby plugin that handles development and production mode of Vite.",
-    "version": "2.3.0",
+    "version": "2.4.0",
     "type": "kirby-plugin",
     "license": "MIT",
     "homepage": "https://github.com/jan-herman/kirby-vite",
@@ -17,8 +17,8 @@
         "getkirby/composer-installer": "^1.2"
     },
     "extra": {
-		"installer-name": "vite"
-	},
+        "installer-name": "vite"
+    },
     "config": {
         "optimize-autoloader": true
     },

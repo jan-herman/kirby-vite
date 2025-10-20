@@ -39,7 +39,7 @@ class Vite
      * Check if we're in development mode.
      * Look for `.lock` file in vite's root dir as indicator.
      */
-    protected function isDev(): bool
+    public function isDev(): bool
     {
         $lock_file = kirby()->root('base') . $this->getRootDir() . '/.lock';
         return F::exists($lock_file);
@@ -74,7 +74,7 @@ class Vite
 
 		$uri = new Uri([
 			'scheme' => option('jan-herman.vite.server.https', false) ? 'https' : 'http',
-			'host'   => option('jan-herman.vite.server.host', kirby()->environment()->host()),
+			'host'   => option('jan-herman.vite.server.host', 'localhost'),
 			'port'   => option('jan-herman.vite.server.port', 3000)
 		]);
 
@@ -86,7 +86,7 @@ class Vite
      */
     public function devUrl(string $path): string
 	{
-		return $this->getDevServer() . '/' . $path;
+		return $this->getDevServer() . option('jan-herman.vite.server.base', '/') . $path;
 	}
 
     /**
@@ -124,7 +124,7 @@ class Vite
             return $this->manifest;
         }
 
-        $manifest_path = kirby()->root() . $this->getOutDir() . '/.vite/manifest.json';
+        $manifest_path = kirby()->root() . $this->getOutDir() . '/' . option('jan-herman.vite.build.manifest', '.vite/manifest.json');
 
         if (!F::exists($manifest_path)) {
             return [];
@@ -156,28 +156,36 @@ class Vite
     }
 
     /**
+     * Check if an entry file is a stylesheet.
+     */
+    private function entryIsCss(?string $entry): bool
+    {
+        if (!$entry) {
+            return false;
+        }
+
+        return preg_match('/\.(css|less|sass|scss|styl|stylus|pcss|postcss)$/', $entry) === 1;
+    }
+
+    /**
 	 * Return array of files for given entry point.
 	 */
-    private function getCssFiles(?string $entry = null): array
+    public function getCssFiles(?string $entry = null): array
     {
         $files = (array) $this->getManifestProperty($entry, 'css');
+
+        if ($this->entryIsCss($entry) && $files === []) {
+            $files = (array) $this->getManifestProperty($entry, 'file');
+        }
+
         $imports = (array) $this->getManifestProperty($entry, 'imports');
 
-        if ($imports) {
-            foreach ($imports as $import) {
-                $imported_files = (array) $this->getManifestProperty($import, 'css');
-                $files = array_merge($files, $imported_files);
-            }
+        foreach ($imports as $import) {
+            $files = array_merge($files, $this->getCssFiles($import));
         }
 
         // reverse the order to prevent specificity issues
-        $files = array_reverse($files);
-
-        // make sure every file is imported only once
-        $files = array_diff($files, $this->css_files);
-        $this->css_files = array_merge($this->css_files, $files);
-
-        return $files;
+        return array_reverse($files);
     }
 
     /**
@@ -198,7 +206,7 @@ class Vite
     public function css(?string $entry = null, array $options = []): ?string
     {
         if ($this->isDev()) {
-            return null;
+            return $this->devCss($entry, $options);
         }
 
         $files = $this->getCssFiles($entry);
@@ -209,7 +217,12 @@ class Vite
 
         $css = '';
         foreach ($files as $file) {
+            if (in_array($file, $this->css_files)) {
+                continue;
+            }
+
             $css .= css($this->prodUrl($file), $options) . PHP_EOL;
+            $this->css_files[] = $file;
         }
 
         return $css;
@@ -221,7 +234,7 @@ class Vite
     public function inlineCss(?string $entry = null, array $options = []): ?string
     {
         if ($this->isDev()) {
-            return null;
+            return $this->devCss($entry, $options);
         }
 
         $files = $this->getCssFiles($entry);
@@ -234,12 +247,34 @@ class Vite
 
         $css = '';
         foreach ($files as $file) {
+            if (in_array($file, $this->css_files)) {
+                continue;
+            }
+
             $css .= '<style ' . Html::attr($options) . '>';
             $css .= F::read($this->prodPath($file));
             $css .= '</style>';
+
+            $this->css_files[] = $file;
         }
 
         return $css;
+    }
+
+    /**
+	 * Return `<link>` tag for css file in development mode.
+	 */
+    private function devCss(?string $entry = null, array $options = []): ?string
+    {
+        if ($this->entryIsCss($entry) === false) {
+            return null;
+        }
+
+        if (!F::exists($this->devPath($entry))) {
+            return null;
+        }
+
+        return css($this->devUrl($entry), $options) . PHP_EOL;
     }
 
     /**
@@ -268,6 +303,23 @@ class Vite
         $options = array_merge(['type' => 'module'], $options);
 
         return js($file_url, $options) . PHP_EOL;
+    }
+
+    /**
+     * Return a `<script>` tag for a virtual JS module.
+     */
+    public function virtualJs(?string $entry = null, array $options = []): ?string
+    {
+        if (!$this->isDev()) {
+            return null;
+        }
+
+        if (!F::exists($this->devPath($entry))) {
+            return null;
+        }
+
+        $options = array_merge(['type' => 'module'], $options);
+        return js($this->getDevServer() . '/@kirby-vite/' . $entry . '.js', $options);
     }
 
     /**
