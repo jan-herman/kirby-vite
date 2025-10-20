@@ -11,6 +11,7 @@ class Vite
 {
     protected static $instance;
 
+    protected bool $is_dev;
     protected string $out_dir;
     protected string $root_dir;
     protected string $dev_server;
@@ -37,12 +38,17 @@ class Vite
 
     /**
      * Check if we're in development mode.
-     * Look for `.lock` file in vite's root dir as indicator.
+     * Look for hotfile in vite's root dir as indicator.
      */
     public function isDev(): bool
     {
-        $lock_file = kirby()->root('base') . $this->getRootDir() . '/.lock';
-        return F::exists($lock_file);
+        if (isset($this->is_dev)) {
+            return $this->is_dev;
+        }
+
+        $hot_file = kirby()->root('base') . $this->sanitizeDir(option('jan-herman.vite.build.hotFile', 'src/.lock'));
+
+        return $this->is_dev = F::exists($hot_file);
     }
 
     /**
@@ -50,7 +56,9 @@ class Vite
      */
     public function getOutDir(): string
     {
-        return $this->out_dir ??= $this->sanitizeDir(option('jan-herman.vite.build.outDir', 'dist'));
+        return $this->out_dir ??= $this->sanitizeDir(
+            option('jan-herman.vite.build.outDir', 'dist')
+        );
     }
 
     /**

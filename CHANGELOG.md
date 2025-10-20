@@ -5,7 +5,7 @@
 - support for directly importing stylesheets
 - `virtualJs()` method to create virtual JS modules
 - `server.base` option
-- `build.manifest` option
+- `build.manifest` & `build.hotFile` options
 
 ### Changed
 - `getCssFiles()` method now supports nested imports

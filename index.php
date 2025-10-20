@@ -18,6 +18,7 @@ Kirby::plugin('jan-herman/vite', [
 		'build' => [
             'rootDir' => 'src',
 			'outDir' => 'dist',
+			'hotFile' => 'src/.lock',
 			'manifest' => '.vite/manifest.json',
 		]
 	],

@@ -32,6 +32,10 @@ Default: `'src'`
 
 Default: `'dist'`
 
+### build.hotFile
+
+Default: `'src/.lock'`
+
 ### build.manifest
 
 Default: `.vite/manifest.json`
