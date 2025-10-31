@@ -25,9 +25,9 @@ Kirby::plugin('jan-herman/vite', [
 	'routes' => [
 		[
 			'pattern' => '@kirby-vite/(:all).js',
-			'action' => function($file) {
+			'action' => function($entry) {
 				return new Response(
-                    'import \'' . vite()->file($file) . '\'',
+                    'import \'' . vite()->url($entry) . '\'',
                     'application/javascript',
                     200,
                     [

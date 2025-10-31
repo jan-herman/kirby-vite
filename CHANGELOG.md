@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.5.0] - 2025-10-31
+### Added
+- `vite()->url()` & `vite()->path()` methods
+- path normalization
+
+### Changed
+- more logical order of methods in `Vite` class
+- `sanitizeDir()` helper method renamed to `normalizePath()`
+- refactoring using new methods
+
+### Deprecated
+- `vite()->file()` method (will be set to private in 3.0.0)
+
+
 ## [2.4.0] - 2025-10-14
 ### Added
 - support for directly importing stylesheets

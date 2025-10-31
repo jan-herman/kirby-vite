@@ -29,11 +29,11 @@ class Vite
     }
 
     /**
-     * Make sure, a directory starts with a slash and doesn't end with a slash.
+     * Make sure, a path starts with a slash and doesn't end with a slash.
      */
-    protected function sanitizeDir(string $dir): string
+    protected function normalizePath(string $path): string
     {
-        return Url::path($dir, true, false);
+        return Url::path($path, true, false);
     }
 
     /**
@@ -46,7 +46,8 @@ class Vite
             return $this->is_dev;
         }
 
-        $hot_file = kirby()->root('base') . $this->sanitizeDir(option('jan-herman.vite.build.hotFile', 'src/.lock'));
+        $relative_path = option('jan-herman.vite.build.hotFile', 'src/.lock');
+        $hot_file = kirby()->root('base') . $this->normalizePath($relative_path);
 
         return $this->is_dev = F::exists($hot_file);
     }
@@ -56,7 +57,7 @@ class Vite
      */
     public function getOutDir(): string
     {
-        return $this->out_dir ??= $this->sanitizeDir(
+        return $this->out_dir ??= $this->normalizePath(
             option('jan-herman.vite.build.outDir', 'dist')
         );
     }
@@ -66,7 +67,7 @@ class Vite
      */
     public function getRootDir(): string
     {
-        return $this->root_dir ??= $this->sanitizeDir(
+        return $this->root_dir ??= $this->normalizePath(
             option('jan-herman.vite.build.rootDir', 'src')
         );
     }
@@ -94,7 +95,8 @@ class Vite
      */
     public function devUrl(string $path): string
 	{
-		return $this->getDevServer() . option('jan-herman.vite.server.base', '/') . $path;
+        $base = option('jan-herman.vite.server.base', '/');
+		return $this->getDevServer() . $this->normalizePath($base) . $this->normalizePath($path);
 	}
 
     /**
@@ -102,7 +104,7 @@ class Vite
      */
     public function devPath(string $path): string
 	{
-		return kirby()->root('base') . $this->getRootDir() . '/' . $path;
+		return kirby()->root('base') . $this->getRootDir() . $this->normalizePath($path);
 	}
 
     /**
@@ -111,7 +113,7 @@ class Vite
     public function prodUrl(string $path): string
 	{
         $root = kirby()->url('index');
-        return ($root === '/' ? '' : $root) . $this->getOutDir() . '/' . $path;
+        return $this->normalizePath($root) . $this->getOutDir() . $this->normalizePath($path);
 	}
 
     /**
@@ -120,7 +122,7 @@ class Vite
     public function prodPath(string $path): string
 	{
         $root = kirby()->root('index');
-        return ($root === '/' ? '' : $root) . $this->getOutDir() . '/' . $path;
+        return $this->normalizePath($root) . $this->getOutDir() . $this->normalizePath($path);
 	}
 
     /**
@@ -132,7 +134,8 @@ class Vite
             return $this->manifest;
         }
 
-        $manifest_path = kirby()->root() . $this->getOutDir() . '/' . option('jan-herman.vite.build.manifest', '.vite/manifest.json');
+        $relative_path = option('jan-herman.vite.build.manifest', '.vite/manifest.json');
+        $manifest_path = kirby()->root('index') . $this->getOutDir() . $this->normalizePath($relative_path);
 
         if (!F::exists($manifest_path)) {
             return [];
@@ -197,6 +200,71 @@ class Vite
     }
 
     /**
+	 * Return the url or path for the specified entry point.
+	 */
+    public function file(?string $entry = null, string $format = 'url'): ?string
+    {
+        $entry ??= option('jan-herman.vite.entry', 'index.js');
+        $entry = ltrim($entry, '/');
+
+        if ($this->isDev()) {
+            $file_path = $this->devPath($entry);
+            $file_url = $this->devUrl($entry);
+        } else {
+            $manifest_property = $this->getManifestProperty($entry, 'file');
+
+            if (!$manifest_property) {
+                return null;
+            }
+
+            $file_path = $this->prodPath($manifest_property);
+            $file_url = $this->prodUrl($manifest_property);
+        }
+
+        if (!F::exists($file_path)) {
+            return null;
+        }
+
+        if ($format === 'path') {
+            return $file_path;
+        }
+
+        return $file_url;
+    }
+
+    /**
+	 * Return the path for the specified entry point.
+	 */
+    public function path(?string $entry = null): ?string
+    {
+        return $this->file($entry, 'path');
+    }
+
+    /**
+	 * Return the url for the specified entry point.
+	 */
+    public function url(?string $entry = null): ?string
+    {
+        return $this->file($entry, 'url');
+    }
+
+    /**
+	 * Return a `<link rel="preload">` tag for an entry point.
+	 */
+    public function preload(string $entry, array $options = []): ?string
+    {
+        $file_url = $this->url($entry);
+
+        if (!$file_url) {
+            return null;
+        }
+
+        $options = array_merge(['rel' => 'preload', 'href' => $file_url], $options);
+
+        return '<link ' . Html::attr($options) . '>' . PHP_EOL;
+    }
+
+    /**
 	 * Return a `<script>` tag for vite's client in development mode.
 	 */
     public function client(): ?string
@@ -206,6 +274,22 @@ class Vite
         }
 
         return js($this->devUrl('@vite/client'), ['type' => 'module']);
+    }
+
+    /**
+	 * Return `<link>` tag for css file in development mode.
+	 */
+    private function devCss(?string $entry = null, array $options = []): ?string
+    {
+        if ($this->entryIsCss($entry) === false) {
+            return null;
+        }
+
+        if (!F::exists($this->devPath($entry))) {
+            return null;
+        }
+
+        return css($this->devUrl($entry), $options) . PHP_EOL;
     }
 
     /**
@@ -270,42 +354,18 @@ class Vite
     }
 
     /**
-	 * Return `<link>` tag for css file in development mode.
-	 */
-    private function devCss(?string $entry = null, array $options = []): ?string
-    {
-        if ($this->entryIsCss($entry) === false) {
-            return null;
-        }
-
-        if (!F::exists($this->devPath($entry))) {
-            return null;
-        }
-
-        return css($this->devUrl($entry), $options) . PHP_EOL;
-    }
-
-    /**
 	 * Return a `<script>` tag for an entry point.
 	 */
     public function js(?string $entry = null, array $options = []): ?string
     {
-        if ($this->isDev()) {
-            $entry = $entry ?? option('jan-herman.vite.entry', 'index.js');
+        $file_url = $this->url($entry);
 
-            if (!F::exists($this->devPath($entry))) {
-                return null;
-            }
+        if ($file_url === null) {
+            return null;
+        }
 
-            $file_url = $this->devUrl($entry);
-        } else {
-            $manifest_property = $this->getManifestProperty($entry, 'file');
-
-            if (!$manifest_property || F::size($this->prodPath($manifest_property)) <= 29) {
-                return null;
-            }
-
-            $file_url = $this->prodUrl($manifest_property);
+        if ($this->isDev() === false && F::size($this->path($entry)) <= 29) {
+            return null;
         }
 
         $options = array_merge(['type' => 'module'], $options);
@@ -318,57 +378,16 @@ class Vite
      */
     public function virtualJs(?string $entry = null, array $options = []): ?string
     {
-        if (!$this->isDev()) {
+        if ($this->isDev() === false) {
             return null;
         }
 
-        if (!F::exists($this->devPath($entry))) {
+        if ($this->path($entry) === null) {
             return null;
         }
 
         $options = array_merge(['type' => 'module'], $options);
-        return js($this->getDevServer() . '/@kirby-vite/' . $entry . '.js', $options);
-    }
 
-    /**
-	 * Return the url for the specified entry point.
-	 */
-    public function file(string $entry): ?string
-    {
-        if ($this->isDev()) {
-            $file_path = $this->devPath($entry);
-            $file_url = $this->devUrl($entry);
-        } else {
-            $manifest_property = $this->getManifestProperty($entry, 'file');
-
-            if (!$manifest_property) {
-                return null;
-            }
-
-            $file_path = $this->prodPath($manifest_property);
-            $file_url = $this->prodUrl($manifest_property);
-        }
-
-        if (!F::exists($file_path)) {
-            return null;
-        }
-
-        return $file_url;
-    }
-
-    /**
-	 * Return a `<link rel="preload">` tag for an entry point.
-	 */
-    public function preload(string $entry, array $options = []): ?string
-    {
-        $file_url = $this->file($entry);
-
-        if (!$file_url) {
-            return null;
-        }
-
-        $options = array_merge(['rel' => 'preload', 'href' => $file_url], $options);
-
-        return '<link ' . Html::attr($options) . '>' . PHP_EOL;
+        return js($this->getDevServer() . '/@kirby-vite' . $this->normalizePath($entry) . '.js', $options);
     }
 }
