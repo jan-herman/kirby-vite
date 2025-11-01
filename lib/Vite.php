@@ -93,10 +93,12 @@ class Vite
     /**
      * Get the url for the specified file for development mode.
      */
-    public function devUrl(string $path): string
+    public function devUrl(string $path, bool $proxy = false): string
 	{
         $base = option('jan-herman.vite.server.base', '/');
-		return $this->getDevServer() . $this->normalizePath($base) . $this->normalizePath($path);
+        $server = $proxy && trim($base, '/') ? kirby()->url('index') : $this->getDevServer();
+
+		return $server . $this->normalizePath($base) . $this->normalizePath($path);
 	}
 
     /**
@@ -113,7 +115,7 @@ class Vite
     public function prodUrl(string $path): string
 	{
         $root = kirby()->url('index');
-        return $this->normalizePath($root) . $this->getOutDir() . $this->normalizePath($path);
+        return ($root === '/' ? '' : $root) . $this->getOutDir() . $this->normalizePath($path);
 	}
 
     /**
@@ -202,14 +204,14 @@ class Vite
     /**
 	 * Return the url or path for the specified entry point.
 	 */
-    public function file(?string $entry = null, string $format = 'url'): ?string
+    public function file(?string $entry = null, string $format = 'url', bool $proxy = false): ?string
     {
         $entry ??= option('jan-herman.vite.entry', 'index.js');
         $entry = ltrim($entry, '/');
 
         if ($this->isDev()) {
             $file_path = $this->devPath($entry);
-            $file_url = $this->devUrl($entry);
+            $file_url = $this->devUrl($entry, $proxy);
         } else {
             $manifest_property = $this->getManifestProperty($entry, 'file');
 
@@ -243,9 +245,9 @@ class Vite
     /**
 	 * Return the url for the specified entry point.
 	 */
-    public function url(?string $entry = null): ?string
+    public function url(?string $entry = null, bool $proxy = false): ?string
     {
-        return $this->file($entry, 'url');
+        return $this->file($entry, 'url', $proxy);
     }
 
     /**

@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.6.0] - 2025-11-01
+### Added
+- possibility to proxy development URLs (useful for avoiding CORS issues with SVG sprites)
+    - `vite()->url(string $entry, bool $proxy = false)`
+
+### Fixed
+- use absolute URLs in production mode (fixes bug introduced in 2.5.0)
+
+
 ## [2.5.0] - 2025-10-31
 ### Added
 - `vite()->url()` & `vite()->path()` methods
