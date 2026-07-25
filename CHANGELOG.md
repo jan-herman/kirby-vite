@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.7.0] - 2025-07-25
+### Added
+- support for Latte SFC
+- support for entries with relative paths (i.e. '../site/templates/file.scss')
+- `Vite::getRootPath()` & `Vite::getOutPath()` methods
+
+### Removed
+- `vite()->virtualJs()` method ⚡ potential BC ⚡
+
+### Changed
+- major refactoring (variable casing etc.)
+
+
 ## [2.6.0] - 2025-11-01
 ### Added
 - possibility to proxy development URLs (useful for avoiding CORS issues with SVG sprites)
