@@ -285,8 +285,16 @@ class Vite
     {
         $files = (array) $this->getManifestProperty($entry, 'css');
 
-        if ($this->entryIsCss($entry) && $files === []) {
+        if ($files === [] && $this->entryIsCss($entry)) {
             $files = (array) $this->getManifestProperty($entry, 'file');
+        }
+
+        if ($files === [] && $this->entryIsLatte($entry)) {
+            $file = $this->getManifestProperty($entry, 'file');
+
+            if ($this->entryIsCss($file)) {
+                $files = [$file];
+            }
         }
 
         $imports = (array) $this->getManifestProperty($entry, 'imports');

@@ -4,6 +4,7 @@
 ### Added
 - support for Latte SFC
 - support for entries with relative paths (i.e. '../site/templates/file.scss')
+- manifest entry fallback to name when no entry is found by the given path
 - `Vite::getRootPath()` & `Vite::getOutPath()` methods
 
 ### Removed
