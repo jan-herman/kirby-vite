@@ -10,6 +10,7 @@ use JanHerman\Vite\Vite;
 Kirby::plugin('jan-herman/vite', [
 	'options' => [
 		'entry' => 'index.js',
+		'mode' => 'auto',
 		'server' => [
 			'host' => 'localhost',
 			'port' => 3000,

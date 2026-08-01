@@ -2,12 +2,15 @@
 
 namespace JanHerman\Vite;
 
+use InvalidArgumentException;
 use JsonException;
 use Kirby\Filesystem\F;
+use Kirby\Http\Remote;
 use Kirby\Http\Uri;
 use Kirby\Http\Url;
 use Kirby\Toolkit\Html;
 use RuntimeException;
+use Throwable;
 
 class Vite
 {
@@ -40,8 +43,7 @@ class Vite
     }
 
     /**
-     * Check if we're in development mode.
-     * Look for the hot file in Vite's root dir as indicator.
+     * Check if we're in development mode using the configured detection mode.
      */
     public function isDev(): bool
     {
@@ -49,10 +51,59 @@ class Vite
             return $this->isDev;
         }
 
+        $mode = option('jan-herman.vite.mode', 'auto');
+
+        if (!is_string($mode)) {
+            throw new InvalidArgumentException('Vite mode must be a string');
+        }
+
+        return $this->isDev = match ($mode) {
+            'auto' => kirby()->environment()->isLocal()
+                && $this->devServerIsRunning(),
+            'development' => true,
+            'production' => false,
+            'hotfile' => $this->hotFileExists(),
+            'manifest' => !$this->manifestExists(),
+            default => throw new InvalidArgumentException(
+                'Invalid Vite mode: ' . $mode
+            ),
+        };
+    }
+
+    /**
+     * Check if the configured hot file exists.
+     */
+    protected function hotFileExists(): bool
+    {
         $relativePath = option('jan-herman.vite.build.hotFile', 'src/.lock');
         $hotFile = kirby()->root('base') . $this->normalizePath($relativePath);
 
-        return $this->isDev = F::exists($hotFile);
+        return F::exists($hotFile);
+    }
+
+    /**
+     * Check if the configured manifest exists.
+     */
+    protected function manifestExists(): bool
+    {
+        return F::exists($this->getManifestPath());
+    }
+
+    /**
+     * Check if the Vite development server responds with a successful status.
+     */
+    protected function devServerIsRunning(): bool
+    {
+        try {
+            $code = Remote::head(
+                $this->devUrl('@vite/client'),
+                ['timeout' => 1]
+            )->code();
+
+            return $code !== null && $code >= 200 && $code < 300;
+        } catch (Throwable) {
+            return false;
+        }
     }
 
     /**
@@ -71,6 +122,16 @@ class Vite
     public function getOutPath(): string
     {
         return kirby()->root('index') . $this->getOutDir();
+    }
+
+    /**
+     * Get the absolute path to the manifest file.
+     */
+    protected function getManifestPath(): string
+    {
+        $relativePath = option('jan-herman.vite.build.manifest', '.vite/manifest.json');
+
+        return $this->getOutPath() . $this->normalizePath($relativePath);
     }
 
     /**
@@ -175,9 +236,7 @@ class Vite
             return $this->manifest;
         }
 
-        $relativePath = option('jan-herman.vite.build.manifest', '.vite/manifest.json');
-        $manifestPath = $this->getOutPath()
-            . $this->normalizePath($relativePath);
+        $manifestPath = $this->getManifestPath();
 
         if (!F::exists($manifestPath)) {
             throw new RuntimeException('Vite manifest not found: ' . $manifestPath);
