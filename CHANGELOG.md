@@ -1,12 +1,12 @@
 # Changelog
 
-## [2.7.0] - 2025-07-25
+## [2.7.0] - 2025-08-20
 ### Added
 - configurable development mode detection with `auto`, `development`, `production`, `hotfile`, and `manifest` modes
-- support for Latte SFC
 - support for entries with relative paths (i.e. '../site/templates/file.scss') using vites `@fs` helper
 - manifest entry fallback to name when no entry is found by the given path
 - `Vite::getRootPath()` & `Vite::getOutPath()` methods
+- experimental support for Latte SFC
 
 ### Removed
 - `vite()->virtualJs()` method ⚡ potential BC ⚡

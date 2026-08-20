@@ -58,8 +58,7 @@ class Vite
         }
 
         return $this->isDev = match ($mode) {
-            'auto' => kirby()->environment()->isLocal()
-                && $this->devServerIsRunning(),
+            'auto' => kirby()->environment()->isLocal() && $this->devServerIsRunning(),
             'development' => true,
             'production' => false,
             'hotfile' => $this->hotFileExists(),
