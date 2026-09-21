@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.7.1] - 2026-09-21
+### Fixed
+- prevent `auto` mode from detecting another project's Vite server on the same port
+
+
 ## [2.7.0] - 2025-08-20
 ### Added
 - configurable development mode detection with `auto`, `development`, `production`, `hotfile`, and `manifest` modes

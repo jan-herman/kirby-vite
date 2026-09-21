@@ -89,13 +89,13 @@ class Vite
     }
 
     /**
-     * Check if the Vite development server responds with a successful status.
+     * Check if the Vite development server serves the configured entry.
      */
     protected function devServerIsRunning(): bool
     {
         try {
             $code = Remote::head(
-                $this->devUrl('@vite/client'),
+                $this->devUrl('@fs' . $this->devPath(option('jan-herman.vite.entry', 'index.js'))) . '?raw',
                 ['timeout' => 1]
             )->code();
 
